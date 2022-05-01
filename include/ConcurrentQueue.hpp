@@ -6,7 +6,7 @@
 #include <optional>
 
 template<typename T, uint64_t SIZE = 4096>
-class ConcurrentQueue {
+class ConcurrentQueue final {
  private:
   static constexpr unsigned Log2(unsigned n, unsigned p = 0) {
       return (n <= 1) ? p : Log2(n / 2, p + 1);
@@ -34,12 +34,12 @@ class ConcurrentQueue {
     }
   }
 
-  bool peek() {
+  [[nodiscard]] bool peek() noexcept {
     std::lock_guard<std::mutex> lock(mLock);
     return mWritePtr != mReadPtr;
   }
 
-  bool isFull() {
+  [[nodiscard]] bool isFull() noexcept {
     std::lock_guard<std::mutex> lock(mLock);
     return getCount() == mSize;
   }
@@ -54,7 +54,7 @@ class ConcurrentQueue {
   }
 
  private:
-  uint64_t getCount() const {
+  [[nodiscard]] uint64_t getCount() const noexcept{
     return mWritePtr > mReadPtr ? mWritePtr - mReadPtr : mReadPtr - mWritePtr;
   }
 }; 
