@@ -3,6 +3,7 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+#include <stdexcept>
 
 #include <ConcurrentQueue.hpp>
 
@@ -22,7 +23,11 @@ int main(int, char**) {
     while (std::chrono::steady_clock::now() < finish) {
       std::unique_lock<std::mutex> locker(access);
       condition.wait_until(locker, finish, [&queue] () -> bool { return queue.peek(); });
-      (*queue.pop())();
+      try {
+        queue.pop();
+      } catch (std::exception const& e) {
+        std::cout << e.what() << std::endl;
+      }
       locker.unlock();
       condition.notify_one();
     }
@@ -34,9 +39,13 @@ int main(int, char**) {
     while (std::chrono::steady_clock::now() < finish) {
       std::unique_lock<std::mutex> locker(access);
       condition.wait_until(locker, finish, [&queue] () -> bool { return !queue.isFull(); });
-      queue.push(std::make_shared<Functor>([&counter] {
-        std::cout << "Running task " << counter++ << std::endl;
-      }));
+      try {
+        queue.push(std::make_shared<Functor>([&counter] {
+            std::cout << "Running task " << counter++ << std::endl;
+        }));
+      } catch (std::exception const& e) {
+        std::cout << e.what() << std::endl;
+      }
       locker.unlock();
       condition.notify_one();
     }

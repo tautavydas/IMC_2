@@ -1,5 +1,10 @@
 #pragma once
 
+#include <cmath>
+#include <array>
+#include <mutex>
+#include <optional>
+
 template<typename T, uint64_t SIZE = 4096>
 class ConcurrentQueue {
  private:
@@ -14,15 +19,19 @@ class ConcurrentQueue {
   static constexpr uint64_t mSize{closestExponentOf2()};
   static constexpr uint64_t mRingModMask{mSize - 1};
 
-  std::array<T, mSize> mMem;
+  std::array<std::optional<T>, mSize> mMem;
   std::mutex mLock;
   uint64_t mReadPtr{0};
   uint64_t mWritePtr{0};
 
  public:
-  const T pop() {
+  void pop() {
     std::lock_guard<std::mutex> lock(mLock);
-    return mMem[mReadPtr++ & mRingModMask];
+    if (mMem[mReadPtr & mRingModMask].has_value()) {
+      (*mMem[mReadPtr++ & mRingModMask].value())();
+    } else {
+      throw std::runtime_error("Queue element is empty");
+    }
   }
 
   bool peek() {
@@ -37,7 +46,11 @@ class ConcurrentQueue {
 
   void push(T&& pItem) {
     std::lock_guard<std::mutex> lock(mLock);
-    mMem[mWritePtr++ & mRingModMask] = std::move(pItem);
+    if (getCount() != mSize) {
+       mMem[mWritePtr++ & mRingModMask] = std::move(pItem);
+    } else {
+      throw std::runtime_error("Concurrent queue full cannot write to it!");
+    }
   }
 
  private:
