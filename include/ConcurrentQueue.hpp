@@ -1,8 +1,5 @@
 #pragma once
 
-#include <queue>
-#include <cmath>
-
 template<typename T, uint64_t SIZE = 4096>
 class ConcurrentQueue {
  private:
