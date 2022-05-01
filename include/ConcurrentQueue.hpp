@@ -2,7 +2,6 @@
 
 #include <queue>
 #include <cmath>
-#include <stdexcept>
 
 template<typename T, uint64_t SIZE = 4096>
 class ConcurrentQueue {
