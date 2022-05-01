@@ -7,11 +7,11 @@ class ConcurrentQueue {
       return (n <= 1) ? p : Log2(n / 2, p + 1);
   }
 
-  static constexpr uint64_t closestExponentOf2(uint64_t x) {
-      return (1UL << ((uint64_t) (Log2(SIZE - 1)) + 1));
+  static constexpr uint64_t closestExponentOf2() {
+      return (1UL << (static_cast<uint64_t>(Log2(SIZE - 1)) + 1));
   }
 
-  static constexpr uint64_t mSize{closestExponentOf2(SIZE)};
+  static constexpr uint64_t mSize{closestExponentOf2()};
   static constexpr uint64_t mRingModMask{mSize - 1};
 
   std::array<T, mSize> mMem;
